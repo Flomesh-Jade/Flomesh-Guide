@@ -1,0 +1,1036 @@
+    spec:
+      containers:
+      - name: log4pipy
+        image: flomesh/log4pipy-clickhouse:v0.0.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: SERVER_LISTENING
+          value: "0.0.0.0:9876"
+        - name: DB_SERVER
+          value: "clickhouse-svc:9000"
+        - name: DB_USER
+          value: "flomesh"
+        - name: DB_PASSWD
+          value: "Flomesh@123!"
+        - name: DB_NAME
+          value: "default"
+EOF
+root@jade-mobilepc:~/flomesh# k3s ctr images | grep gui
+root@jade-mobilepc:~/flomesh# k3s ctr images  ls| grep flomesh-gui
+docker.io/library/flomesh-gui-alpine:2.0.0-199                                                                    application/vnd.docker.distribution.manifest.v2+json      sha256:1107331e25848cb02109edb38772681bf9c11f29985e84168f9e64903378f9bb 924.8 MiB linux/amd64                                                                              io.cri-containerd.image=managed
+root@jade-mobilepc:~/flomesh# ls
+flomesh-gui-alpine-2.0.0-199.tar  flomesh-gui-up.sh  fsm0.2.4osm1.3.5  fsm0.2.5  fsm0.2.6  osm1.3.6  osm1.3.6.tgz
+root@jade-mobilepc:~/flomesh#
+root@jade-mobilepc:~/flomesh#
+root@jade-mobilepc:~/flomesh#
+root@jade-mobilepc:~/flomesh#
+root@jade-mobilepc:~/flomesh# rm -rf flomesh-gui-alpine-2.0.0-199.tar
+root@jade-mobilepc:~/flomesh# export "flomesh-gui-version"="2.0.0-199"
+wget http://repo.flomesh.cn/images/flomesh-gui-alpine-${flomesh-gui-version}.tar.gz
+-bash: export: “flomesh-gui-version=2.0.0-199”: 不是有效的标识符
+--2023-07-06 20:31:24--  http://repo.flomesh.cn/images/flomesh-gui-alpine-gui-version.tar.gz
+正在解析主机 repo.flomesh.cn (repo.flomesh.cn)... 18.178.181.223
+正在连接 repo.flomesh.cn (repo.flomesh.cn)|18.178.181.223|:80... 已连接。
+已发出 HTTP 请求，正在等待回应... 404 Not Found
+2023-07-06 20:31:24 错误 404：Not Found。
+
+      enable: false
+      # -- Minimum replicas for autoscale
+      minReplicas: 1
+      # -- Maximum replicas for autoscale
+      maxReplicas: 5
+      cpu:
+        # -- Average target CPU utilization (%)
+        targetAverageUtilization: 80
+      memory:
+        # -- Average target memory utilization (%)
+        targetAverageUtilization: 80
+
+  #
+  # -- FSM Pipy Ingress Controller parameters
+  ingress:
+    name: fsm-ingress-pipy
+    className: "pipy"
+    enabled: true
+    namespaced: true
+    http:
+      enabled: true
+      port: 80
+      containerPort: 8000
+      nodePort: 30508
+    tls :
+      enabled: false
+      port: 443
+      containerPort: 8443
+      nodePort: 30607
+      mTLS: false
+      sslPassthrough:
+        enabled: false
+        upstreamPort: 443
+    # -- FSM Pipy Ingress Controller's replica count (ignored when autoscale.enable is true)
+    replicaCount: 1
+    service:
+      name: fsm-ingress-pipy-controller
+"values.yaml" 331L, 7657B                                                                                                    181,20        55%
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: "fsm"
+
+  nodeSelector: {}
+  tolerations: []
+  affinity:
+    enabled: true
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/os
+            operator: In
+            values:
+            - linux
+          - key: kubernetes.io/arch
+            operator: In
+            values:
+            - amd64
+            - arm64
+
+  commonEnv:
+    - name: FSM_POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+    - name: FSM_POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+
+  pipy:
+    imageName: pipy
+    tag: 0.90.1-157-nonroot
+
+  toolbox:
+    imageName: toolbox
+    tag: 1.3.0
+
+  curl:
+    imageName: curl
+    tag: 7.84.0
+
+  proxyInit:
+    name: fsm-proxy-init
+
+  #
+  # -- FSM Operator Manager parameters
+  manager:
+    name: fsm-manager
+    # -- FSM Operator Manager's replica count (ignored when autoscale.enable is true)
+    replicaCount: 1
+    # -- FSM Operator Manager's container resource parameters.
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 2000Mi
+      requests:
+        cpu: 200m
+        memory: 200Mi
+    # -- FSM Operator Manager's pod labels
+    podLabels: {}
+    podAnnotations: {}
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 65532
+      runAsGroup: 65532
+      seccompProfile:
+        type: RuntimeDefault
+      # fsGroup: 2000
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+
+    # -- Enable Pod Disruption Budget
+    enablePodDisruptionBudget: false
+    # -- Auto scale configuration
+    autoScale:
+      # -- Enable Autoscale
+      enable: false
+      # -- Minimum replicas for autoscale
+      minReplicas: 1
+      # -- Maximum replicas for autoscale
+      maxReplicas: 5
+      cpu:
+        # -- Average target CPU utilization (%)
+        targetAverageUtilization: 80
+      memory:
+        # -- Average target memory utilization (%)
+        targetAverageUtilization: 80
+
+  #
+  # -- FSM Repo parameters
+  repo:
+    name: fsm-repo
+
+    # The HTTP schema, can be either http or https
+    schema: "http"
+
+    # If it's enabled, it doesn't install the repo deployment in the cluster.
+    # It uses the pre-provisioned repo instance.
+    preProvision:
+      enabled: false
+      host: ""
+      port: 80
+
+    # -- FSM Repo's replica count (ignored when autoscale.enable is true)
+    replicaCount: 1
+
+    # -- FSM Repo's container resource parameters.
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 500Mi
+      requests:
+        cpu: 100m
+        memory: 20M
+    # -- FSM Repo's pod labels
+    podLabels: {}
+    podAnnotations: {}
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 65532
+      runAsGroup: 65532
+      seccompProfile:
+        type: RuntimeDefault
+/flb
+      sslPassthrough:
+        enabled: false
+        upstreamPort: 443
+    service:
+      # fsGroup: 2000
+    securityContext:
+      seccompProfile:
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+#        add:
+    # -- Enable Pod Disruption Budget
+    autoScale:
+      # -- Enable Autoscale
+      enable: false
+      # -- Minimum replicas for autoscale
+root@jade-mobilepc:~/flomesh# wget http://repo.flomesh.cn/images/flomesh-gui-alpine-${flomesh-gui-version}.tar.gz
+--2023-07-06 20:31:59--  http://repo.flomesh.cn/images/flomesh-gui-alpine-gui-version.tar.gz
+正在解析主机 repo.flomesh.cn (repo.flomesh.cn)... 18.178.181.223
+正在连接 repo.flomesh.cn (repo.flomesh.cn)|18.178.181.223|:80... 已连接。
+已发出 HTTP 请求，正在等待回应... 404 Not Found
+
+  serviceLB:
+    enabled: false
+    imageName: mirrored-klipper-lb
+    tag: v0.3.5
+
+  flb:
+    enabled: false
+    strictMode: false
+    secretName: fsm-flb-secret
+    baseUrl: http://localhost:1337
+    username: admin
+    password: admin
+    defaultCluster: default
+    defaultAddressPool: default
+    defaultAlgo: rr
+
+  #
+  # -- FSM Egress Gateway parameters
+  egressGateway:
+    enabled: false
+    name: fsm-egress-gateway
+    # -- FSM Operator Manager's replica count (ignored when autoscale.enable is true)
+    replicaCount: 1
+    # -- FSM Operator Manager's container resource parameters.
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128M
+      requests:
+        cpu: 100m
+        memory: 64M
+    podLabels: {}
+    podAnnotations: {}
+    mode: http2tunnel
+    port: 1080
+    adminPort: 6060
+"values.yaml" 331L, 7657B                                                                                                    270,26        85%
+    # -- Enable Pod Disruption Budget
+    enablePodDisruptionBudget: false
+    # -- Auto scale configuration
+    autoScale:
+      # -- Enable Autoscale
+      enable: false
+      # -- Minimum replicas for autoscale
+      minReplicas: 1
+      # -- Maximum replicas for autoscale
+      maxReplicas: 5
+      cpu:
+        # -- Average target CPU utilization (%)
+        targetAverageUtilization: 80
+      memory:
+        # -- Average target memory utilization (%)
+        targetAverageUtilization: 80
+
+  gatewayApi:
+    enabled: false
+    version: v0.4.3
+
+  serviceLB:
+    enabled: false
+    imageName: mirrored-klipper-lb
+    tag: v0.3.5
+
+  flb:
+    enabled: false
+    strictMode: false
+    secretName: fsm-flb-secret
+    baseUrl: http://localhost:1337
+    username: admin
+    password: admin
+    defaultCluster: default
+    defaultAddressPool: default
+    defaultAlgo: rr
+
+/names
+# Default values for fsm.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+fsm:
+  version: ""
+  namespace: ""
+  nameOverride: ""
+  fullnameOverride: ""
+  logLevel: 2
+
+  image:
+    repository: flomesh
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: "fsm"
+
+  nodeSelector: {}
+  tolerations: []
+  affinity:
+    enabled: true
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/os
+            operator: In
+            values:
+            - linux
+/namespaced
+      enable: false
+      # -- Minimum replicas for autoscale
+      minReplicas: 1
+      # -- Maximum replicas for autoscale
+      maxReplicas: 5
+      cpu:
+        # -- Average target CPU utilization (%)
+        targetAverageUtilization: 80
+      memory:
+        # -- Average target memory utilization (%)
+        targetAverageUtilization: 80
+
+  #
+  # -- FSM Pipy Ingress Controller parameters
+  ingress:
+    name: fsm-ingress-pipy
+    className: "pipy"
+    enabled: true
+    namespaced: true
+    http:
+      enabled: true
+      port: 80
+      containerPort: 8000
+      nodePort: 30508
+    tls :
+      enabled: false
+      port: 443
+      containerPort: 8443
+      nodePort: 30607
+      mTLS: false
+      sslPassthrough:
+        enabled: false
+        upstreamPort: 443
+    # -- FSM Pipy Ingress Controller's replica count (ignored when autoscale.enable is true)
+    replicaCount: 1
+    service:
+      name: fsm-ingress-pipy-controller
+      type: LoadBalancer
+      annotations: {}
+    # -- FSM Pipy Ingress Controller's container resource parameters.
+    resources:
+      limits:
+        cpu: "2"
+        memory: "1G"
+      requests:
+        cpu: "0.5"
+        memory: "128M"
+    # Extra env variables those will be appended to ingress container
+    env:
+2023-07-06 20:31:59 错误 404：Not Found。
+
+root@jade-mobilepc:~/flomesh# wget http://repo.flomesh.cn/images/flomesh-gui-alpine-{$flomesh-gui-version}.tar.gz
+--2023-07-06 20:32:01--  http://repo.flomesh.cn/images/flomesh-gui-alpine-%7B-gui-version%7D.tar.gz
+正在解析主机 repo.flomesh.cn (repo.flomesh.cn)... 18.178.181.223
+正在连接 repo.flomesh.cn (repo.flomesh.cn)|18.178.181.223|:80... 已连接。
+已发出 HTTP 请求，正在等待回应... 404 Not Found
+2023-07-06 20:32:01 错误 404：Not Found。
+
+root@jade-mobilepc:~/flomesh# export flomesh-gui-version="2.0.0-199"
+-bash: export: “flomesh-gui-version=2.0.0-199”: 不是有效的标识符
+root@jade-mobilepc:~/flomesh# export version="2.0.0-199"
+root@jade-mobilepc:~/flomesh# wget http://repo.flomesh.cn/images/flomesh-gui-alpine-$version.tar.gz
+--2023-07-06 20:32:46--  http://repo.flomesh.cn/images/flomesh-gui-alpine-2.0.0-199.tar.gz
+正在解析主机 repo.flomesh.cn (repo.flomesh.cn)... 18.178.181.223
+正在连接 repo.flomesh.cn (repo.flomesh.cn)|18.178.181.223|:80... 已连接。
+已发出 HTTP 请求，正在等待回应... 200 OK
+长度： 354999403 (339M) [application/octet-stream]
+正在保存至: ‘flomesh-gui-alpine-2.0.0-199.tar.gz’
+
+flomesh-gui-alpine-2.0.0-199.tar.gz 100%[==================================================================>] 338.55M  2.84MB/s    用时 96s
+
+2023-07-06 20:34:22 (3.52 MB/s) - 已保存 ‘flomesh-gui-alpine-2.0.0-199.tar.gz’ [354999403/354999403])
+
+root@jade-mobilepc:~/flomesh# ls
+flomesh-gui-alpine-2.0.0-199.tar.gz  flomesh-gui-up.sh  fsm0.2.4osm1.3.5  fsm0.2.5  fsm0.2.6  osm1.3.6  osm1.3.6.tgz
+root@jade-mobilepc:~/flomesh# cd fsm0.2.
+-bash: cd: fsm0.2.: 没有那个文件或目录
+root@jade-mobilepc:~/flomesh# cd fsm0.2.6
+root@jade-mobilepc:~/flomesh/fsm0.2.6# ls
+fsm-0.2.6.tgz  helm-install.sh  values.yaml
+root@jade-mobilepc:~/flomesh/fsm0.2.6# vi values.yaml
+root@jade-mobilepc:~/flomesh/fsm0.2.6# cat helm-install.sh
+#!/bin/bash
+helm install --namespace flomesh --create-namespace --set fsm.version=0.2.6 --set fsm.logLevel=5 -f values.yaml fsm ./fsm-0.2.6.tgz
+#helm upgrade --namespace flomesh --set fsm.version=0.2.6-alpha.1 --set fsm.logLevel=5 -f values.yaml fsm ./fsm-0.2.6-alpha.1.tgz
+root@jade-mobilepc:~/flomesh/fsm0.2.6# vi values.yaml
+root@jade-mobilepc:~/flomesh/fsm0.2.6#
+root@jade-mobilepc:~/flomesh/fsm0.2.6#
+root@jade-mobilepc:~/flomesh/fsm0.2.6#
+root@jade-mobilepc:~/flomesh/fsm0.2.6# kubectl wait --for=condition=ready pod -n flomesh --timeout=180s
+error: resource(s) were provided, but no name was specified
+root@jade-mobilepc:~/flomesh/fsm0.2.6#
+root@jade-mobilepc:~/flomesh/fsm0.2.6# kubectl wait --for=condition=ready pod -A -n flomesh --timeout=180s
+error: resource(s) were provided, but no name was specified
+root@jade-mobilepc:~/flomesh/fsm0.2.6#
+root@jade-mobilepc:~/flomesh/fsm0.2.6# kubectl wait --for=condition=ready pod -l -n flomesh --timeout=180s
+error: name cannot be provided when a selector is specified
+root@jade-mobilepc:~/flomesh/fsm0.2.6# kubectl wait --for=condition=ready  -n flomesh --timeout=180s
+error: You must provide one or more resources by argument or filename.
+Example resource specifications include:
+   '-f rsrc.yaml'
+   '--filename=rsrc.json'
+   '<resource> <name>'
+   '<resource>'
+root@jade-mobilepc:~/flomesh/fsm0.2.6# kubectl get po -n flomesh
+NAME                           READY   STATUS    RESTARTS       AGE
+fsm-repo-578ddb7998-4nshc      1/1     Running   1 (112m ago)   2d1h
+fsm-manager-79bf65b9cd-ngp9z   1/1     Running   2 (111m ago)   2d1h
+root@jade-mobilepc:~/flomesh/fsm0.2.6# kubectl wait --for=condition=ready pod -l fsm-repo -n flomesh --timeout=180s
+error: no matching resources found
+root@jade-mobilepc:~/flomesh/fsm0.2.6# kubectl wait --for=condition=ready pod -l fsm-manager -n flomesh --timeout=180s
+error: no matching resources found
+root@jade-mobilepc:~/flomesh/fsm0.2.6# kubectl wait --for=condition=ready pod -l repo -n flomesh --timeout=180s
+error: no matching resources found
+root@jade-mobilepc:~/flomesh/fsm0.2.6# kubectl describe po -n flomesh
+Name:                 fsm-repo-578ddb7998-4nshc
+Namespace:            flomesh
+Priority:             2000001000
+Priority Class Name:  system-node-critical
+Service Account:      fsm
+Node:                 jade-mobilepc/192.168.68.11
+Start Time:           Tue, 04 Jul 2023 19:15:07 +0800
+Labels:               app=fsm-repo
+                      app.kubernetes.io/component=fsm-repo
+                      app.kubernetes.io/instance=fsm-repo
+                      app.kubernetes.io/managed-by=Helm
+                      app.kubernetes.io/name=fsm
+                      app.kubernetes.io/version=0.2.6
+                      flomesh.io/app=fsm-repo
+                      helm.sh/chart=fsm-0.2.6
+                      pod-template-hash=578ddb7998
+Annotations:          <none>
+Status:               Running
+IP:                   10.42.0.27
+IPs:
+  IP:           10.42.0.27
+Controlled By:  ReplicaSet/fsm-repo-578ddb7998
+Containers:
+  repo:
+    Container ID:  containerd://95dd641a2f35bc0c82580c9032db760ba93aba9a3ed284e7f0b3e705e0df7971
+    Image:         flomesh/pipy:0.90.1-157-nonroot
+    Image ID:      docker.io/flomesh/pipy@sha256:1f3784e96c85831d6c745d76a89818b4a0be8e7ba661350874d657e4a9fd116d
+    Port:          6060/TCP
+    Host Port:     0/TCP
+    Command:
+      pipy
+    Args:
+      --admin-port=6060
+    State:          Running
+      Started:      Thu, 06 Jul 2023 19:11:41 +0800
+    Last State:     Terminated
+      Reason:       Unknown
+      Exit Code:    255
+      Started:      Tue, 04 Jul 2023 19:15:22 +0800
+      Finished:     Thu, 06 Jul 2023 19:11:20 +0800
+    Ready:          True
+    Restart Count:  1
+    Limits:
+      cpu:     1
+      memory:  500Mi
+    Requests:
+      cpu:      100m
+      memory:   20M
+    Liveness:   tcp-socket :6060 delay=1s timeout=5s period=10s #success=1 #failure=3
+    Readiness:  tcp-socket :6060 delay=1s timeout=5s period=10s #success=1 #failure=3
+    Environment:
+      FSM_POD_NAME:       fsm-repo-578ddb7998-4nshc (v1:metadata.name)
+      FSM_POD_NAMESPACE:  flomesh (v1:metadata.namespace)
+      FSM_NAMESPACE:      flomesh
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-ssprj (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  kube-api-access-ssprj:
+    Type:                    Projected (a volume that contains injected data from multiple sources)
+    TokenExpirationSeconds:  3607
+    ConfigMapName:           kube-root-ca.crt
+    ConfigMapOptional:       <nil>
+    DownwardAPI:             true
+QoS Class:                   Burstable
+Node-Selectors:              <none>
+Tolerations:                 node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                             node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:                      <none>
+
+
+Name:                 fsm-manager-79bf65b9cd-ngp9z
+Namespace:            flomesh
+Priority:             2000001000
+Priority Class Name:  system-node-critical
+Service Account:      fsm
+Node:                 jade-mobilepc/192.168.68.11
+Start Time:           Tue, 04 Jul 2023 19:15:07 +0800
+Labels:               app=fsm-manager
+                      app.kubernetes.io/component=fsm-manager
+                      app.kubernetes.io/instance=fsm-manager
+                      app.kubernetes.io/managed-by=Helm
+                      app.kubernetes.io/name=fsm
+                      app.kubernetes.io/version=0.2.6
+                      flomesh.io/app=fsm-manager
+                      helm.sh/chart=fsm-0.2.6
+                      pod-template-hash=79bf65b9cd
+Annotations:          <none>
+Status:               Running
+IP:                   10.42.0.34
+IPs:
+  IP:           10.42.0.34
+Controlled By:  ReplicaSet/fsm-manager-79bf65b9cd
+Init Containers:
+  init:
+    Container ID:  containerd://57eb2d8d313adb86a9712abcfc50df7c40219686dea3b181eaec9f618184fc93
+    Image:         flomesh/toolbox:1.3.0
+    Image ID:      docker.io/flomesh/toolbox@sha256:1f85f773d6f84cf7a48bf7323b518087eb3f2f1ed9912f16c2127cfd10e632fe
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      sh
+      -c
+      tar -C /repo -zxvf /scripts.tar.gz
+      kubectl apply -f /crds
+
+      kubectl get cluster local --ignore-not-found=false
+      if [ $? -eq 0 ];
+      then
+          echo "Cluster local exists, ignore creating ..."
+      else
+          echo "Cluster local doesn't exist, will create it ..."
+          kubectl apply -f /manifests/cluster_local.yaml --validate='false'
+      fi
+
+      kubectl get pf default-proxyprofile --ignore-not-found=false
+      if [ $? -eq 0 ];
+      then
+          echo "ProxyProfile default-proxyprofile exists, ignore creating ..."
+      else
+          echo "ProxyProfile default-proxyprofile doesn't exist, will create it ..."
+          kubectl apply -f /manifests/default_proxyprofile.yaml --validate='false'
+      fi
+
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Thu, 06 Jul 2023 19:11:45 +0800
+      Finished:     Thu, 06 Jul 2023 19:11:47 +0800
+    Ready:          True
+    Restart Count:  1
+    Environment:    <none>
+    Mounts:
+      /crds from fsm-crds-resources (rw)
+      /manifests from fsm-manifests-config (rw)
+      /repo from shared-repo (rw)
+      /scripts.tar.gz from fsm-repo-init-scripts (rw,path="scripts.tar.gz")
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-m7g7p (ro)
+Containers:
+  manager:
+    Container ID:  containerd://5f19f25d4802b3caf5fbf1335f486ad1ed08fe0ca3aea36ca5f5f7351595499c
+    Image:         flomesh/fsm-manager:0.2.6
+    Image ID:      docker.io/flomesh/fsm-manager@sha256:c64eeda641f4d94095d80eeae25b31022b2eb3b0d0576e2ca77914f22145b016
+    Ports:         9443/TCP, 8081/TCP
+    Host Ports:    0/TCP, 0/TCP
+    Command:
+      /manager
+    Args:
+      --v=5
+      --config=manager_config.yaml
+    State:          Running
+      Started:      Thu, 06 Jul 2023 19:12:10 +0800
+    Last State:     Terminated
+      Reason:       Error
+      Exit Code:    2
+      Started:      Thu, 06 Jul 2023 19:11:48 +0800
+      Finished:     Thu, 06 Jul 2023 19:12:10 +0800
+    Ready:          True
+    Restart Count:  2
+    Limits:
+      cpu:     2
+      memory:  2000Mi
+    Requests:
+      cpu:      200m
+      memory:   200Mi
+    Liveness:   http-get http://:8081/healthz delay=1s timeout=5s period=10s #success=1 #failure=3
+    Readiness:  http-get http://:8081/readyz delay=1s timeout=5s period=10s #success=1 #failure=3
+    Environment:
+      FSM_POD_NAME:       fsm-manager-79bf65b9cd-ngp9z (v1:metadata.name)
+      FSM_POD_NAMESPACE:  flomesh (v1:metadata.namespace)
+      FSM_NAMESPACE:      flomesh
+    Mounts:
+      /manager_config.yaml from fsm-manager-config (rw,path="manager_config.yaml")
+      /repo from shared-repo (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from kube-api-access-m7g7p (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  fsm-manager-config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      fsm-manager-config
+    Optional:  false
+  fsm-repo-init-scripts:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      fsm-repo-init-scripts
+    Optional:  false
+  fsm-crds-resources:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      fsm-crds-resources
+    Optional:  false
+  fsm-manifests-config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      fsm-manifests-config
+    enabled: true
+    namespaced: true
+    http:
+      enabled: true
+      port: 80
+      containerPort: 8000
+      nodePort: 30508
+    tls :
+      enabled: false
+      port: 443
+      containerPort: 8443
+      nodePort: 30607
+      mTLS: false
+      sslPassthrough:
+        enabled: false
+        upstreamPort: 443
+    # -- FSM Pipy Ingress Controller's replica count (ignored when autoscale.enable is true)
+    replicaCount: 1
+    service:
+      name: fsm-ingress-pipy-controller
+      type: LoadBalancer
+      annotations: {}
+    # -- FSM Pipy Ingress Controller's container resource parameters.
+    resources:
+      limits:
+        cpu: "2"
+        memory: "1G"
+      requests:
+        cpu: "0.5"
+        memory: "128M"
+    # Extra env variables those will be appended to ingress container
+    env:
+      - name: GIN_MODE
+        value: release
+    # -- FSM Pipy Ingress Controller's pod labels
+    podLabels: {}
+    podAnnotations: {}
+"values.yaml" 331L, 7657B                                                                                                    198,5         60%
+# Default values for fsm.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+fsm:
+  version: ""
+  namespace: ""
+  nameOverride: ""
+  fullnameOverride: ""
+  logLevel: 2
+
+  image:
+    repository: flomesh
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: "fsm"
+
+  nodeSelector: {}
+  tolerations: []
+  affinity:
+    enabled: true
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/os
+            operator: In
+            values:
+            - linux
+          - key: kubernetes.io/arch
+            operator: In
+            values:
+            - amd64
+            - arm64
+
+  commonEnv:
+    - name: FSM_POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+    - name: FSM_POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.namespace
+
+  pipy:
+    imageName: pipy
+    tag: 0.90.1-157-nonroot
+
+  toolbox:
+    imageName: toolbox
+    tag: 1.3.0
+
+  curl:
+    imageName: curl
+    tag: 7.84.0
+
+  proxyInit:
+    name: fsm-proxy-init
+
+  #
+  # -- FSM Operator Manager parameters
+  manager:
+    name: fsm-manager
+    # -- FSM Operator Manager's replica count (ignored when autoscale.enable is true)
+    replicaCount: 1
+    # -- FSM Operator Manager's container resource parameters.
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 2000Mi
+      requests:
+        cpu: 200m
+        memory: 200Mi
+    # -- FSM Operator Manager's pod labels
+    podLabels: {}
+    podAnnotations: {}
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 65532
+      runAsGroup: 65532
+      seccompProfile:
+        type: RuntimeDefault
+      # fsGroup: 2000
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+
+    # -- Enable Pod Disruption Budget
+    enablePodDisruptionBudget: false
+    # -- Auto scale configuration
+    autoScale:
+      # -- Enable Autoscale
+      enable: false
+      # -- Minimum replicas for autoscale
+      minReplicas: 1
+      # -- Maximum replicas for autoscale
+      maxReplicas: 5
+      cpu:
+        # -- Average target CPU utilization (%)
+        targetAverageUtilization: 80
+      memory:
+        # -- Average target memory utilization (%)
+        targetAverageUtilization: 80
+
+  #
+  # -- FSM Repo parameters
+  repo:
+    name: fsm-repo
+
+    # The HTTP schema, can be either http or https
+    schema: "http"
+
+    # If it's enabled, it doesn't install the repo deployment in the cluster.
+    # It uses the pre-provisioned repo instance.
+    preProvision:
+      enabled: false
+      host: ""
+      port: 80
+
+    # -- FSM Repo's replica count (ignored when autoscale.enable is true)
+    replicaCount: 1
+
+    # -- FSM Repo's container resource parameters.
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 500Mi
+      requests:
+        cpu: 100m
+        memory: 20M
+    # -- FSM Repo's pod labels
+    podLabels: {}
+    podAnnotations: {}
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 65532
+      runAsGroup: 65532
+      seccompProfile:
+        type: RuntimeDefault
+      # fsGroup: 2000
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+
+    # -- Enable Pod Disruption Budget
+    enablePodDisruptionBudget: false
+    # -- Auto scale configuration
+    autoScale:
+      # -- Enable Autoscale
+      enable: false
+      # -- Minimum replicas for autoscale
+      minReplicas: 1
+      # -- Maximum replicas for autoscale
+      maxReplicas: 5
+      cpu:
+        # -- Average target CPU utilization (%)
+        targetAverageUtilization: 80
+      memory:
+        # -- Average target memory utilization (%)
+        targetAverageUtilization: 80
+
+  #
+  # -- FSM Pipy Ingress Controller parameters
+  ingress:
+    name: fsm-ingress-pipy
+    className: "pipy"
+    enabled: true
+    namespaced: true
+    http:
+      enabled: true
+      port: 80
+      containerPort: 8000
+      nodePort: 30508
+    tls :
+      enabled: false
+      port: 443
+      containerPort: 8443
+      nodePort: 30607
+      mTLS: false
+      sslPassthrough:
+        enabled: false
+        upstreamPort: 443
+    # -- FSM Pipy Ingress Controller's replica count (ignored when autoscale.enable is true)
+    replicaCount: 1
+    service:
+      name: fsm-ingress-pipy-controller
+      type: LoadBalancer
+      annotations: {}
+    # -- FSM Pipy Ingress Controller's container resource parameters.
+    resources:
+      limits:
+        cpu: "2"
+        memory: "1G"
+      requests:
+        cpu: "0.5"
+        memory: "128M"
+    # Extra env variables those will be appended to ingress container
+    env:
+      - name: GIN_MODE
+        value: release
+    # -- FSM Pipy Ingress Controller's pod labels
+    podLabels: {}
+    podAnnotations: {}
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 65532
+      runAsGroup: 65532
+      seccompProfile:
+        type: RuntimeDefault
+      # fsGroup: 2000
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+#        add:
+#        - NET_BIND_SERVICE
+
+    # -- Enable Pod Disruption Budget
+    enablePodDisruptionBudget: false
+    # -- Auto scale configuration
+    autoScale:
+      # -- Enable Autoscale
+      enable: false
+      # -- Minimum replicas for autoscale
+      minReplicas: 1
+      # -- Maximum replicas for autoscale
+      maxReplicas: 5
+      cpu:
+        # -- Average target CPU utilization (%)
+        targetAverageUtilization: 80
+      memory:
+        # -- Average target memory utilization (%)
+        targetAverageUtilization: 80
+
+  gatewayApi:
+    enabled: false
+    version: v0.4.3
+
+  serviceLB:
+    enabled: false
+    imageName: mirrored-klipper-lb
+    tag: v0.3.5
+
+  flb:
+    enabled: false
+    strictMode: false
+    secretName: fsm-flb-secret
+    baseUrl: http://localhost:1337
+    username: admin
+    password: admin
+    defaultCluster: default
+    defaultAddressPool: default
+    defaultAlgo: rr
+
+  #
+  # -- FSM Egress Gateway parameters
+  egressGateway:
+    enabled: false
+    name: fsm-egress-gateway
+    # -- FSM Operator Manager's replica count (ignored when autoscale.enable is true)
+    replicaCount: 1
+    # -- FSM Operator Manager's container resource parameters.
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128M
+      requests:
+        cpu: 100m
+        memory: 64M
+    podLabels: {}
+    podAnnotations: {}
+    mode: http2tunnel
+    port: 1080
+    adminPort: 6060
+    logLevel: error
+
+  logging:
+    enabled: false
+    secretName: fsm-logging-secret
+    url: http://localhost:8123/ping
+# Default values for fsm.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+fsm:
+  version: ""
+  namespace: ""
+  nameOverride: ""
+  fullnameOverride: ""
+  logLevel: 2
+
+  image:
+    repository: flomesh
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+
+  serviceAccount:
+    # Specifies whether a service account should be created
+    create: true
+    # Annotations to add to the service account
+    annotations: {}
+    # The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: "fsm"
+
+  nodeSelector: {}
+  tolerations: []
+  affinity:
+    enabled: true
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/os
+            operator: In
+            values:
+            - linux
+                                                                                                                             1,5          顶端
