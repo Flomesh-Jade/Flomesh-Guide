@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clickhouse
+  labels:
+    app: clickhouse
+spec:
+  selector:
+    matchLabels:
+      app: clickhouse
+  template:
+    metadata:
+      labels:
+        app: clickhouse
+    spec:
+      volumes:
+      - name: ch-data
+        hostPath:
+          path: /data/clickhouse-0528
+      containers:
+      - image: clickhouse/clickhouse-server:22.10.1
+        name: clickhouse-server
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: TZ
+          value: Asia/Shanghai
+        - name: CLICKHOUSE_USER
+          value: flomesh
+        - name: CLICKHOUSE_PASSWORD
+          value: Flomesh@123!
+        volumeMounts:
+        - name: ch-data
+          mountPath: /var/lib/clickhouse
+        ports:
+        - name: ch-port
+          containerPort: 8123
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clickhouse-svc
+spec:
+  type: NodePort
+  ports:
+  - name: clickhouse-server
+    port: 8123
+    targetPort: 8123
+    protocol: TCP
+    nodePort: 30023
+  - name: clickhouse-port
+    port: 9000
+    targetPort: 9000
+    protocol: TCP
+    nodePort: 30099
+  selector:
+    app: clickhouse
