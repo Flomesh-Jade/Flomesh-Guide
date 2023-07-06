@@ -6,7 +6,7 @@ Flomesh服务网格部署手册
 - 准备安装物料
 ```bash
 git clone https://github.com/Flomesh-Jade/Flomesh-Guide.git
-cd 
+cd Flomesh-Guide
 ```
 
 # 2.安装flomesh-gui
