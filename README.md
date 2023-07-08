@@ -94,9 +94,9 @@ kubectl wait --for=condition=ready pod -n flomesh -l helm.sh/chart=fsm-0.2.6 --t
 system=$(uname -s | tr [:upper:] [:lower:])
 arch=$(dpkg --print-architecture)
 release=v1.3.6
-curl -L https://github.com/cybwan/fsm/releases/download/${release}/fsm-${release}-${system}-${arch}.tar.gz | tar -vxzf -
-./${system}-${arch}/fsm version
-cp ./${system}-${arch}/fsm /usr/local/bin/
+curl -L https://github.com/flomesh-io/osm-edge/releases/download/${release}/osm-edge-${release}-${system}-${arch}.tar.gz | tar -vxzf -
+./${system}-${arch}/osm version
+cp ./${system}-${arch}/osm /usr/local/bin/
 ```
 - 安装osm
 ```
@@ -116,7 +116,7 @@ osm install \
     --set=osm.featureFlags.enablePluginPolicy=true \
     --timeout=900s
 ```
-> 这三条为clickhouse的接口地址、账户密码，密码采用base64形式
->  --set=osm.remoteLogging.address=192.168.68.11 \
+> 这三条为clickhouse的接口地址、账户密码，密码采用base64形式 \
+>   --set=osm.remoteLogging.address=192.168.68.11 \
     --set=osm.remoteLogging.port=30023 \
     --set=osm.remoteLogging.authorization="Basic ZmxvbWVzaDpGbG9tZXNoQDEyMyE=" \
