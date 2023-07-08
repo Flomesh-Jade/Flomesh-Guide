@@ -14,19 +14,19 @@ cd Flomesh-Guide
 > clickhouse用作日志服务器，收集sidecar日志信息，提供给flomesh-gui进行整合展示
 ```bash
 kubectl create ns flomesh-gui
-kubectl apply -f -n flomesh-gui ./yaml/flomesh-gui/clickhouse.yaml
+kubectl apply -f ./yaml/flomesh-gui/clickhouse.yaml -n flomesh-gui
 kubectl wait --for=condition=ready pod -n flomesh-gui -l app=clickhouse --timeout=180s
 ```
 安装postgres
 > postgres用作系统数据库，保存flomesh-gui系统配置
 ```bash
-kubectl apply -f -n flomesh-gui ./yaml/flomesh-gui/postgres.yaml
+kubectl apply -f ./yaml/flomesh-gui/postgres.yaml -n flomesh-gui
 kubectl wait --for=condition=ready pod -n flomesh-gui -l app=postgres --timeout=180s
 ```
 安装pipy-repo
 > pipy-repo在FLB场景下用作系统pipy codebase库，是flomesh-gui必须组件
 ```bash
-kubectl apply -f -n flomesh-gui ./yaml/flomesh-gui/pipy-repo.yaml
+kubectl apply -f ./yaml/flomesh-gui/pipy-repo.yaml -n flomesh-gui
 kubectl wait --for=condition=ready pod -n flomesh-gui -l app=pipy-repo --timeout=180s
 ```
 安装flomesh-gui
@@ -40,7 +40,7 @@ k3s ctr image import flomesh-gui-alpine-$version.tar
 ```
 - 部署flomesh-gui
 ```bash
-kubectl apply -f -n flomesh-gui ./yaml/flomesh-gui/flomesh-gui.yaml
+kubectl apply -f ./yaml/flomesh-gui/flomesh-gui.yaml -n flomesh-gui
 kubectl wait --for=condition=ready pod -n flomesh-gui -l app=flomesh-gui --timeout=180s
 ```
 # 3.安装FSM
