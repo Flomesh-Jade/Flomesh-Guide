@@ -44,10 +44,6 @@ kubectl apply -f ./yaml/flomesh-gui/flomesh-gui.yaml -n flomesh-gui
 kubectl wait --for=condition=ready pod -n flomesh-gui -l app=flomesh-gui --timeout=180s
 ```
 # 3.安装FSM
-- 下载fsm chart包
-```bash
-wget https://github.com/flomesh-io/fsm-classic/raw/gh-pages/fsm-0.2.6.tgz
-```
 - 编辑values.yaml
 ```bash
 vi ./yaml/fsm/values.yaml
