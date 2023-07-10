@@ -33,7 +33,7 @@ kubectl wait --for=condition=ready pod -n flomesh-gui -l app=pipy-repo --timeout
 > flomesh-gui提供图形化配置和展示页面
 - 下载flomesh-gui镜像并导入（以k3s为例）
 ```bash 
-export version="2.0.0-199"
+export version="2.0.0-203"
 wget http://repo.flomesh.cn/images/flomesh-gui-alpine-$version.tar.gz
 gunzip flomesh-gui-alpine-$version.tar.gz
 k3s ctr image import flomesh-gui-alpine-$version.tar
