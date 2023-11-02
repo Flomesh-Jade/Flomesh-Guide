@@ -93,7 +93,7 @@ kubectl wait --for=condition=ready pod -n flomesh -l helm.sh/chart=fsm-0.2.6 --t
 ```
 system=$(uname -s | tr [:upper:] [:lower:])
 arch=$(dpkg --print-architecture)
-release=v1.3.6
+release=v1.3.9
 curl -L https://github.com/flomesh-io/osm-edge/releases/download/${release}/osm-edge-${release}-${system}-${arch}.tar.gz | tar -vxzf -
 ./${system}-${arch}/osm version
 cp ./${system}-${arch}/osm /usr/local/bin/
@@ -106,7 +106,7 @@ osm install \
     --mesh-name "$osm_mesh_name" \
     --osm-namespace "$osm_namespace" \
     --set=osm.image.registry=flomesh \
-    --set=osm.image.tag=1.3.6 \
+    --set=osm.image.tag=1.3.9 \
     --set=osm.sidecarLogLevel=warn \
     --set=osm.controllerLogLevel=warn \
     --set=osm.remoteLogging.enable=true \
